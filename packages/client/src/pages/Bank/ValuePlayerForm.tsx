@@ -23,13 +23,13 @@ const ValuePlayerForm: React.FC<IValuePlayerFormProps> = ({
 
   const submit = () => {
     if (amount === null) {
-      setSubmitError("Por favor proporciona una cantidad");
+      setSubmitError("Please provide an amount");
     } else if (amount <= 0) {
-      setSubmitError("Debes proporcionar una suma mayor a $0");
+      setSubmitError("You must provide sum larger than $0");
     } else if (!Number.isInteger(amount)) {
-      setSubmitError("La cantidad debe ser un número entero");
+      setSubmitError("The amount must be a whole number");
     } else if (selectedPlayer === null) {
-      setSubmitError("Ningún jugador seleccionado");
+      setSubmitError("No player is selected");
     } else {
       onSubmit(amount, selectedPlayer.playerId);
       setAmount(null);
@@ -51,7 +51,7 @@ const ValuePlayerForm: React.FC<IValuePlayerFormProps> = ({
           as={ButtonGroup}
           variant="outline-secondary"
           id={`${identifier}-player`}
-          title={selectedPlayer?.name ?? "Seleccionar Jugador"}
+          title={selectedPlayer?.name ?? "Select Player"}
         >
           {players.map((player) => (
             <Dropdown.Item key={player.playerId} onClick={() => setSelectedPlayer(player)}>
@@ -71,4 +71,3 @@ const ValuePlayerForm: React.FC<IValuePlayerFormProps> = ({
 };
 
 export default ValuePlayerForm;
-
