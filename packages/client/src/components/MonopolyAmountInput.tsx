@@ -12,7 +12,7 @@ interface IMonopolyAmountInputProps {
 }
 
 // Common Monopoly denominations for quick selection
-const QUICK_AMOUNTS = [50, 100, 200, 500, 1000, 2000];
+const QUICK_AMOUNTS = [50, 100, 200, 500, 1000, 1500, 2000];
 
 const MonopolyAmountInput: React.FC<IMonopolyAmountInputProps> = ({
   amount,
@@ -57,7 +57,9 @@ const MonopolyAmountInput: React.FC<IMonopolyAmountInputProps> = ({
   };
 
   const setQuickAmount = (value: number) => {
-    setInputValue(`${value}`);
+    const currentValue = parseFloat(inputValue) || 0;
+    const newValue = currentValue + value;
+    setInputValue(`${newValue}`);
     playSound('click');
     
     // Refocus the number input
