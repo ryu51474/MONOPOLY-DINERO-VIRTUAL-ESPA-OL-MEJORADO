@@ -42,7 +42,7 @@ const useGameHandler = (): {
       body: (
         <>
           <p>{message}</p>
-          <p className="mb-0">Here was the games progress:</p>
+          <p className="mb-0">Aquí está el progreso del juego:</p>
           <ul className="mb-1">
             {gameState.players.map((player) => (
               <li key={player.playerId}>
@@ -50,10 +50,10 @@ const useGameHandler = (): {
               </li>
             ))}
             {gameState.useFreeParking && (
-              <li>Free Parking: {formatCurrency(gameState.freeParkingBalance)}</li>
+              <li>Estacionamiento Libre: {formatCurrency(gameState.freeParkingBalance)}</li>
             )}
           </ul>
-          <small>(Provided just in the case you need to re-create the game)</small>
+          <small>(Proporcionado en caso de que necesites recrear el juego)</small>
         </>
       )
     });

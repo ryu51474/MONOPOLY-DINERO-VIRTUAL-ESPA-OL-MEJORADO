@@ -182,8 +182,8 @@ class GameHandler {
     switch (reason) {
       case "end":
         this.onDisplayMessage(
-          "Game Ended",
-          "The game has been ended by the banker.",
+          "Juego Terminado",
+          "El juego ha sido terminado por el banquero.",
           this.gameState
         );
         break;
@@ -191,16 +191,16 @@ class GameHandler {
         // Calculate the game state before the player was removed
         const previousGameState = calculateGameState(this.events.slice(0, -1), defaultGameState);
         this.onDisplayMessage(
-          "Removed From Game",
-          "You have been intentionally removed from the game by the banker.",
+          "Eliminado del Juego",
+          "Has sido eliminado intencionalmente del juego por el banquero.",
           previousGameState
         );
         break;
       case "unexpectedWebSocketClosure":
         trackUnexpectedServerDisconnection();
         this.onDisplayMessage(
-          "Disconnection from the server",
-          "Unexpectedly disconnection from the server. Please make sure you are connected to the internet.",
+          "Desconexión del servidor",
+          "Desconexión inesperada del servidor. Por favor verifica que estés conectado a internet.",
           this.gameState
         );
         break;
