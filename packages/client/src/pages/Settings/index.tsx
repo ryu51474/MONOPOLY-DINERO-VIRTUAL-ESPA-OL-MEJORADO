@@ -147,7 +147,7 @@ const Settings: React.FC<ISettingsProps> = ({
       </Table>
 
       <Button block variant="info" onClick={toggleFreeParking}>
-        {useFreeParking ? "Desactivar" : "Activar"} la Regla de Casa de Estacionamiento Libre
+        {useFreeParking ? "Desactivar" : "Activar"} la Regla de Casa de Parada Libre
       </Button>
 
       <Button block variant="primary" onClick={toggleNewPlayersAllowed}>

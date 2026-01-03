@@ -2,24 +2,24 @@ import React from "react";
 import { Button, Modal } from "react-bootstrap";
 import { useSounds } from "./SoundProvider";
 
-// Predefined avatar options with colors and emojis
+// Predefined avatar options with colors and emojis - using same emojis as utils.ts
 export const AVATAR_OPTIONS = [
-  { id: "dog", emoji: "🐕", color: "#8B4513" },
+  { id: "dog", emoji: "🐶", color: "#8B4513" },
   { id: "cat", emoji: "🐱", color: "#FF6B6B" },
   { id: "mouse", emoji: "🐭", color: "#A0A0A0" },
   { id: "rabbit", emoji: "🐰", color: "#FFB6C1" },
   { id: "fox", emoji: "🦊", color: "#FF6B35" },
-  { id: "wolf", emoji: "🐺", color: "#6B5B95" },
+  { id: "bear", emoji: "🐻", color: "#8B4513" },
   { id: "panda", emoji: "🐼", color: "#2C3E50" },
+  { id: "koala", emoji: "🐨", color: "#7F8C8D" },
   { id: "lion", emoji: "🦁", color: "#F39C12" },
   { id: "tiger", emoji: "🐯", color: "#E74C3C" },
-  { id: "horse", emoji: "🐴", color: "#8B4513" },
-  { id: "unicorn", emoji: "🦄", color: "#9B59B6" },
-  { id: "zebra", emoji: "🦓", color: "#34495E" },
   { id: "cow", emoji: "🐮", color: "#D5D8DC" },
   { id: "pig", emoji: "🐷", color: "#FFB6C1" },
-  { id: "koala", emoji: "🐨", color: "#7F8C8D" },
-  { id: "bear", emoji: "🐻", color: "#8B4513" },
+  { id: "monkey", emoji: "🐵", color: "#8B4513" },
+  { id: "chicken", emoji: "🐔", color: "#FFB6C1" },
+  { id: "penguin", emoji: "🐧", color: "#34495E" },
+  { id: "owl", emoji: "🦉", color: "#6B5B95" },
 ];
 
 interface IAvatarSelectorProps {

@@ -1479,15 +1479,169 @@ body {
     padding: 4px 6px !important;
     font-size: 0.75rem;
   }
-  
+
   .stat-value {
     font-size: 1.5em;
   }
-  
+
   .player-avatar {
     width: 32px;
     height: 32px;
     font-size: 1rem;
   }
+}
+
+/* ==========================================
+   PLAYER EMOJI ANIMATIONS
+   ========================================== */
+
+/* Emoji bounce animation - cute bounce for player emojis */
+@keyframes emojiBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-4px) scale(1.1);
+  }
+  50% {
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    transform: translateY(-2px) scale(1.05);
+  }
+}
+
+/* Emoji wiggle - cute side to side wiggle */
+@keyframes emojiWiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+/* Emoji pulse glow - gentle glow effect */
+@keyframes emojiPulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+    transform: scale(1.1);
+  }
+}
+
+/* Emoji float up - gentle float animation */
+@keyframes emojiFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Emoji entrance - bounce in when appearing */
+@keyframes emojiEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0) translateY(10px);
+  }
+  50% {
+    transform: scale(1.3) translateY(-5px);
+  }
+  75% {
+    transform: scale(0.9) translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Player emoji container - holds emoji next to player name */
+.player-emoji {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 1.1em;
+  animation: emojiFloat 2s ease-in-out infinite;
+  transition: transform 0.2s ease;
+}
+
+/* Player emoji at end of name */
+.player-emoji-end {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 1.1em;
+  animation: emojiFloat 2s ease-in-out infinite 1s; /* 1s delay */
+  transition: transform 0.2s ease;
+}
+
+/* Player card emoji hover effect */
+.player-card:hover .player-emoji,
+.player-card:hover .player-emoji-end {
+  animation: emojiBounce 0.5s ease-in-out;
+}
+
+/* Player name with emoji styling */
+.player-name-with-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* Emoji in player card title */
+.player-card-title-emoji {
+  display: inline-block;
+  margin-right: 5px;
+  animation: emojiEntrance 0.5s ease-out;
+}
+
+/* Emoji in notifications */
+.notification-player-emoji {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 1.2em;
+  animation: emojiPulseGlow 1.5s ease-in-out infinite;
+}
+
+/* Badge player emoji */
+.badge-player-emoji {
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 1em;
+  animation: emojiFloat 2s ease-in-out infinite;
+}
+
+/* History event player emoji */
+.event-player-emoji {
+  display: inline-block;
+  margin-right: 4px;
+  animation: emojiEntrance 0.4s ease-out;
+}
+
+/* Connected player dot with emoji */
+.connected-player-emoji {
+  display: inline-block;
+  margin-right: 4px;
+  animation: emojiPulseGlow 2s ease-in-out infinite;
+}
+
+/* Me indicator (current player) */
+.me-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.me-indicator .player-emoji {
+  animation: emojiBounce 1s ease-in-out infinite;
 }
 

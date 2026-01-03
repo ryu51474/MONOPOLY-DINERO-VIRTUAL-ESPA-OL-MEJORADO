@@ -31,7 +31,7 @@ const GiveFreeParking: React.FC<IGiveFreeParkingProps> = ({
   return (
     <>
       <label htmlFor="free-parking-player" className="mb-1">
-        Dar Estacionamiento Libre ({formatCurrency(freeParkingBalance)})
+        Dar Parada Libre ({formatCurrency(freeParkingBalance)})
       </label>
 
       <ButtonGroup className="mt-1 player-and-submit-group">

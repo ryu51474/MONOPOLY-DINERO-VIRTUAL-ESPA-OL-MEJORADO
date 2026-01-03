@@ -4,7 +4,7 @@ import { Card } from "react-bootstrap";
 import { useModal } from "react-modal-hook";
 import { bankName, freeParkingName } from "../../constants";
 import useTransactionDetection from "../../hooks/useTransactionDetection";
-import { formatCurrency, sortPlayersByName } from "../../utils";
+import { formatCurrency, getPlayerEmoji, sortPlayersByName } from "../../utils";
 import "./Funds.scss";
 import GameCode from "./GameCode";
 import PlayerCard from "./PlayerCard";
@@ -74,7 +74,13 @@ const Funds: React.FC<IFundsProps> = ({
       <Card className="mb-1 text-center">
         {me !== undefined && (
           <Card.Body className="p-3">
-            {me.name}: {formatCurrency(me.balance)}
+            <div className="me-indicator">
+              <span className="player-emoji" role="img" aria-label="animal">
+                {getPlayerEmoji(me.playerId)}
+              </span>
+              <span>{me.name}</span>
+            </div>
+            <div className="mt-2">{formatCurrency(me.balance)}</div>
           </Card.Body>
         )}
       </Card>
@@ -84,6 +90,7 @@ const Funds: React.FC<IFundsProps> = ({
           <PlayerCard
             key={player.playerId}
             name={player.name}
+            playerId={player.playerId}
             connected={player.connected}
             balance={player.balance}
             onClick={() => setRecipient(player)}

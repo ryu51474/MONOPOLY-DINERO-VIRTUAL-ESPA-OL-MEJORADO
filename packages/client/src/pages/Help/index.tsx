@@ -32,7 +32,7 @@ const Help: React.FC = () => {
         todos los campos.
       </p>
 
-      <h5>Transferir Fondos a Otros Jugadores, Estacionamiento Libre y el Banco</h5>
+      <h5>Transferir Fondos a Otros Jugadores, Parada Libre y el Banco</h5>
       <p>
         Para transferir fondos a otra persona/entidad, haz clic en la baldosa asociada con el
         jugador/entidad objetivo en la página de fondos. Debería aparecer un diálogo que te permitirá
@@ -92,10 +92,10 @@ const Help: React.FC = () => {
         ingresa una nueva cantidad y presiona "Establecer".
       </p>
 
-      <h5>Dar Estacionamiento Libre a un Jugador</h5>
+      <h5>Dar Parada Libre a un Jugador</h5>
       <p>
-        Para dar estacionamiento libre a un jugador, selecciona el jugador en el menú desplegable
-        debajo de la etiqueta "Dar Estacionamiento Libre" y presiona "Dar" para completar la
+        Para dar parada libre a un jugador, selecciona el jugador en el menú desplegable
+        debajo de la etiqueta "Dar Parada Libre" y presiona "Dar" para completar la
         transacción.
       </p>
 

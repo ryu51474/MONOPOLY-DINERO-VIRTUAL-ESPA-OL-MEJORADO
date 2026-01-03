@@ -20,12 +20,12 @@ export const useTransactionDetection = ({
   const lastProcessedEventIndex = useRef<number>(-1);
   const processedEventsRef = useRef<Set<string>>(new Set());
 
-  const getPlayerName = useCallback((entity: GameEntity): string | null => {
-    if (entity === 'bank') return 'Banco';
-    if (entity === 'freeParking') return 'Parada Libre';
+  const getPlayerInfo = useCallback((entity: GameEntity): { name: string; id?: string } | null => {
+    if (entity === 'bank') return { name: 'Banco' };
+    if (entity === 'freeParking') return { name: 'Parada Libre' };
     
     const player = players.find(p => p.playerId === entity);
-    return player?.name || null;
+    return player ? { name: player.name, id: player.playerId } : null;
   }, [players]);
 
   useEffect(() => {
@@ -62,24 +62,26 @@ export const useTransactionDetection = ({
         
         // Check if current user sent money (only to players, not bank/freeParking)
         if (txEvent.from === currentPlayerId) {
-          const toName = getPlayerName(txEvent.to);
-          if (toName) {
+          const toInfo = getPlayerInfo(txEvent.to);
+          if (toInfo) {
             addNotification({
               type: 'send',
               amount: txEvent.amount,
-              playerName: toName
+              playerName: toInfo.name,
+              playerId: toInfo.id
             });
           }
         }
         
         // Check if current user received money (from anyone including bank/freeParking)
         if (txEvent.to === currentPlayerId) {
-          const fromName = getPlayerName(txEvent.from);
-          if (fromName) {
+          const fromInfo = getPlayerInfo(txEvent.from);
+          if (fromInfo) {
             addNotification({
               type: 'receive',
               amount: txEvent.amount,
-              playerName: fromName
+              playerName: fromInfo.name,
+              playerId: fromInfo.id
             });
           }
         }
@@ -88,7 +90,7 @@ export const useTransactionDetection = ({
     
     // Update last processed index
     lastProcessedEventIndex.current = events.length - 1;
-  }, [events, currentPlayerId, addNotification, getPlayerName]);
+  }, [events, currentPlayerId, addNotification, getPlayerInfo]);
 };
 
 export default useTransactionDetection;
