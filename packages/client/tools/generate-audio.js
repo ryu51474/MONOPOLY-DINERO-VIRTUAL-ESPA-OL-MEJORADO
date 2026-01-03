@@ -275,22 +275,36 @@ function generateWinSound() {
   console.log("Generated: win.wav");
 }
 
-// Generate shuffle sound
+// Generate shuffle sound - deterministic using seeded random
 function generateShuffleSound() {
   const sampleRate = 44100;
   const samples = [];
+  
+  // Simple seeded random number generator for deterministic output
+  let seed = 12345;
+  const seededRandom = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return seed / 0x7fffffff;
+  };
+  
+  // Use a fixed sample offset counter instead of samples.length
+  let currentSampleOffset = 0;
   
   for (let i = 0; i < 12; i++) {
     const gap = i * 0.035;
     const gapSamples = Math.floor(gap * sampleRate);
     
-    for (let j = samples.length / 2; j < gapSamples; j++) {
+    // Add gap samples (stereo = 2 samples per channel)
+    while (currentSampleOffset < gapSamples) {
       samples.push(0, 0);
+      currentSampleOffset++;
     }
     
-    const toneSamples = generateTone(250 + Math.random() * 150, 0.025, sampleRate, 'triangle', 0.2);
+    // Use seeded random for deterministic output
+    const toneSamples = generateTone(250 + seededRandom() * 150, 0.025, sampleRate, 'triangle', 0.2);
     for (let j = 0; j < toneSamples.length; j++) {
       samples.push(toneSamples[j]);
+      currentSampleOffset++;
     }
   }
   
