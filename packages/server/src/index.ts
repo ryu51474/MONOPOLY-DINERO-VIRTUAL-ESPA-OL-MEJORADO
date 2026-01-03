@@ -103,21 +103,21 @@ function printBanner(localIP: string) {
   const networkUrl = `http://${localIP}:${port}`;
   
   console.log("");
-  console.log(colors.fgCyan + colors.bright + "╔════════════════════════════════════════════════════════════╗" + colors.reset);
-  console.log(colors.fgCyan + colors.bright + "║" + colors.reset + "         MONOPOLY MONEY - Servidor Iniciado         " + colors.fgCyan + colors.bright + "║" + colors.reset);
-  console.log(colors.fgCyan + colors.bright + "╚════════════════════════════════════════════════════════════╝" + colors.reset);
+  console.log(colors.fgCyan + colors.bright + "╔══════════════════════════════════════════════════════════════╗" + colors.reset);
+  console.log(colors.fgCyan + colors.bright + "║" + colors.reset + "   🎲 MONOPOLY DINERO VIRTUAL ESPAÑOL 🎲   " + colors.fgCyan + colors.bright + "║" + colors.reset);
+  console.log(colors.fgCyan + colors.bright + "╚══════════════════════════════════════════════════════════════╝" + colors.reset);
   console.log("");
-  console.log(colors.fgGreen + "Servidor iniciado correctamente" + colors.reset);
+  console.log(colors.fgGreen + "✅ Servidor iniciado correctamente" + colors.reset);
   console.log("");
   
-  console.log("  " + colors.fgGreen + "LOCAL" + colors.reset + "  →  " + colors.fgYellow + localUrl + colors.reset);
-  console.log("  " + colors.fgBlue + "RED" + colors.reset + "     →  " + colors.fgYellow + networkUrl + colors.reset);
+  console.log("  " + colors.fgGreen + "🏠 LOCAL" + colors.reset + colors.bright + "  →  " + colors.fgYellow + localUrl + colors.reset);
+  console.log("  " + colors.fgBlue + "🌐 RED" + colors.reset + colors.bright + "    →  " + colors.fgYellow + networkUrl + colors.reset);
   console.log("");
-  console.log(colors.fgRed + "Ctrl+C para detener" + colors.reset);
+  console.log(colors.fgRed + "🛑" + colors.reset + "  Ctrl+C para detener");
   console.log("");
   
   // QR code al final (versión pequeña)
-  console.log(colors.fgMagenta + "CÓDIGO QR:" + colors.reset);
+  console.log(colors.fgMagenta + "📱 CÓDIGO QR:" + colors.reset);
   qrcodeTerminal.generate(networkUrl, { small: true }, (qr: string) => {
     console.log(qr);
   });
