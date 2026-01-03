@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Card } from "react-bootstrap";
 import { useModal } from "react-modal-hook";
 import { bankName, freeParkingName } from "../../constants";
+import useTransactionDetection from "../../hooks/useTransactionDetection";
 import { formatCurrency, sortPlayersByName } from "../../utils";
 import "./Funds.scss";
 import GameCode from "./GameCode";
@@ -31,6 +32,9 @@ const Funds: React.FC<IFundsProps> = ({
   proposeTransaction,
   events
 }) => {
+  // Detectar transacciones y mostrar notificaciones
+  useTransactionDetection({ events, players, currentPlayerId: playerId });
+
   const [recipient, setRecipient] = useState<IGameStatePlayer | "freeParking" | "bank" | null>(
     null
   );

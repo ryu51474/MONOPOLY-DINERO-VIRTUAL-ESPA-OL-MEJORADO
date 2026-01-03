@@ -4,6 +4,7 @@ import MetaTags from "./components/MetaTags";
 import Navigation from "./components/Navigation";
 import PageSizeWrapper from "./components/PageSizeWrapper";
 import { SoundProvider } from "./components/SoundProvider";
+import TransactionNotification from "./components/TransactionNotification";
 import { routePaths } from "./constants";
 import useGameHandler from "./hooks/useGameHandler";
 import useStoredGames from "./hooks/useStoredGames";
@@ -175,6 +176,7 @@ const App: React.FC = () => {
     <SoundProvider>
       <Navigation inGame={game !== null} isBanker={game?.isBanker ?? false} />
       <div className="my-3">{routeResult || <NotFound />}</div>
+      <TransactionNotification />
     </SoundProvider>
   );
 };

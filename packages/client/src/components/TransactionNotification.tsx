@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSounds } from './SoundProvider';
 import './TransactionNotification.scss';
 
@@ -79,10 +79,11 @@ export const useTransactionNotificationSubscription = () => {
 const TransactionNotification: React.FC = () => {
   const notifications = useTransactionNotificationSubscription();
   const { playSound } = useSounds();
+  const previousLengthRef = useRef<number>(0);
 
   // Play sound when notification appears
   useEffect(() => {
-    if (notifications.length > 0) {
+    if (notifications.length > previousLengthRef.current) {
       const latest = notifications[notifications.length - 1];
       if (!latest.exiting) {
         if (latest.type === 'send') {
@@ -92,6 +93,7 @@ const TransactionNotification: React.FC = () => {
         }
       }
     }
+    previousLengthRef.current = notifications.length;
   }, [notifications, playSound]);
 
   if (notifications.length === 0) return null;

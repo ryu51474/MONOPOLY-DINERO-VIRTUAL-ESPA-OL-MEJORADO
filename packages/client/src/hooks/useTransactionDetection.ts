@@ -11,26 +11,6 @@ interface UseTransactionDetectionProps {
   currentPlayerId: string;
 }
 
-// Get unique event times that have been shown in this browser session
-const getShownEventTimes = (): Set<string> => {
-  try {
-    const stored = sessionStorage.getItem('shownEventTimes');
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  } catch {
-    return new Set();
-  }
-};
-
-const addShownEventTime = (eventTime: string): void => {
-  try {
-    const shown = getShownEventTimes();
-    shown.add(eventTime);
-    sessionStorage.setItem('shownEventTimes', JSON.stringify([...shown]));
-  } catch {
-    // Ignore storage errors
-  }
-};
-
 export const useTransactionDetection = ({
   events,
   players,
@@ -38,7 +18,7 @@ export const useTransactionDetection = ({
 }: UseTransactionDetectionProps) => {
   const { addNotification, clearNotifications } = useTransactionNotifications();
   const lastProcessedEventIndex = useRef<number>(-1);
-  const shownEventTimes = useRef<Set<string>>(new Set());
+  const processedEventsRef = useRef<Set<string>>(new Set());
 
   const getPlayerName = useCallback((entity: GameEntity): string | null => {
     if (entity === 'bank') return 'Banco';
@@ -48,39 +28,34 @@ export const useTransactionDetection = ({
     return player?.name || null;
   }, [players]);
 
-  // Clean up notifications on mount to prevent replay when returning to the page
-  // Also sync with sessionStorage to track events shown across navigation
   useEffect(() => {
     // Clear any existing notifications on mount
     clearNotifications();
     
-    // Sync with sessionStorage
-    shownEventTimes.current = getShownEventTimes();
-    
-    // Clear sessionStorage when the page unloads to prevent stale data
-    const handleBeforeUnload = () => {
-      sessionStorage.removeItem('shownEventTimes');
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Clear processed events on mount
+    processedEventsRef.current.clear();
     
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Cleanup on unmount
     };
   }, [clearNotifications]);
 
   useEffect(() => {
     if (events.length === 0) return;
 
-    // Process new events
-    const startIndex = lastProcessedEventIndex.current + 1;
+    // Process new events starting from the last processed index
+    const startIndex = Math.max(0, lastProcessedEventIndex.current + 1);
     
     for (let i = startIndex; i < events.length; i++) {
       const event = events[i];
       
-      // Skip if this event has already been shown in this session (use time as unique identifier)
-      if (shownEventTimes.current.has(event.time)) {
+      // Skip if this event has already been processed
+      if (processedEventsRef.current.has(event.time)) {
         continue;
       }
+      
+      // Mark as processed
+      processedEventsRef.current.add(event.time);
       
       if (event.type === 'transaction') {
         const txEvent = event as ITransactionEvent;
@@ -94,9 +69,6 @@ export const useTransactionDetection = ({
               amount: txEvent.amount,
               playerName: toName
             });
-            // Mark this event as shown
-            shownEventTimes.current.add(event.time);
-            addShownEventTime(event.time);
           }
         }
         
@@ -109,9 +81,6 @@ export const useTransactionDetection = ({
               amount: txEvent.amount,
               playerName: fromName
             });
-            // Mark this event as shown
-            shownEventTimes.current.add(event.time);
-            addShownEventTime(event.time);
           }
         }
       }
