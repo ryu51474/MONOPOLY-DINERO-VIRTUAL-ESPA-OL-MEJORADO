@@ -55,7 +55,9 @@ export const getPlayerEmojiColor = (emoji: string): string => {
   return AVATAR_COLORS[emoji] || "#888888"; // Default gray if not found
 };
 
-// Get a deterministic animal emoji based on playerId (legacy function)
+// Get a deterministic animal emoji based on playerId
+// This function is DETERMINISTIC: the same playerId will ALWAYS return the same emoji
+// This is critical for multi-device consistency - all devices must see the same emoji for each player
 export const getPlayerEmoji = (playerId: string): string => {
   let hash = 0;
   for (let i = 0; i < playerId.length; i++) {
@@ -65,46 +67,67 @@ export const getPlayerEmoji = (playerId: string): string => {
   return PLAYER_ANIMAL_EMOJIS[Math.abs(hash) % PLAYER_ANIMAL_EMOJIS.length];
 };
 
+// Convenience function to get emoji with color for a player
+export const getPlayerEmojiWithColor = (playerId: string): { emoji: string; color: string } => {
+  const emoji = getPlayerEmoji(playerId);
+  return { emoji, color: getPlayerEmojiColor(emoji) };
+};
+
 // Get unique emojis for all players to avoid duplicates
+// DEPRECATED: This function recalculates from scratch each time, causing emojis to change
+// when new players join. Use assignPlayerEmojis instead for persistent assignments.
 export const getUniquePlayerEmojis = (players: IGameStatePlayer[]): Map<string, string> => {
-  const emojiMap = new Map<string, string>();
-  const usedEmojis = new Set<string>();
+  return assignPlayerEmojis(players);
+};
+
+// Assign emojis to players with persistent mapping
+// Existing players keep their emojis, new players get random ones
+export const assignPlayerEmojis = (
+  players: IGameStatePlayer[],
+  existingEmojis?: Map<string, string>
+): Map<string, string> => {
+  const emojiMap = new Map<string, string>(existingEmojis);
+  const usedEmojis = new Set<string>(existingEmojis?.values());
   
-  // Sort players to ensure consistent ordering
-  const sortedPlayers = sortPlayersByName(players);
+  // First, preserve existing assignments and track used emojis
+  for (const emoji of emojiMap.values()) {
+    usedEmojis.add(emoji);
+  }
   
-  for (const player of sortedPlayers) {
-    let emoji: string | undefined;
-    let attempts = 0;
-    
-    // Try to find an unused emoji
-    while (attempts < PLAYER_ANIMAL_EMOJIS.length) {
-      const hash = player.playerId.split('').reduce((acc, char, idx) => {
-        return ((acc << 5) - acc) + char.charCodeAt(idx) + idx;
-      }, 0);
-      
-      // Try different emojis based on player order
-      const emojiIndex = (hash + attempts) % PLAYER_ANIMAL_EMOJIS.length;
-      emoji = PLAYER_ANIMAL_EMOJIS[emojiIndex];
-      
-      if (!usedEmojis.has(emoji)) {
-        break;
-      }
-      attempts++;
+  // Get available emojis (not yet used)
+  const availableEmojis = PLAYER_ANIMAL_EMOJIS.filter(e => !usedEmojis.has(e));
+  
+  // Shuffle available emojis for truly random selection
+  const shuffleArray = <T>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    
-    // Use the assigned emoji or fall back to the first available
-    if (emoji && !usedEmojis.has(emoji)) {
-      emojiMap.set(player.playerId, emoji);
-      usedEmojis.add(emoji);
-    } else {
-      // Find any unused emoji
-      for (const e of PLAYER_ANIMAL_EMOJIS) {
-        if (!usedEmojis.has(e)) {
-          emojiMap.set(player.playerId, e);
-          usedEmojis.add(e);
-          break;
+    return shuffled;
+  };
+  
+  const shuffledAvailable = shuffleArray(availableEmojis);
+  let availableIndex = 0;
+  
+  // Assign emojis to new players only (existing ones already in map)
+  for (const player of players) {
+    if (!emojiMap.has(player.playerId)) {
+      // New player - assign a random available emoji
+      if (availableIndex < shuffledAvailable.length) {
+        const emoji = shuffledAvailable[availableIndex];
+        emojiMap.set(player.playerId, emoji);
+        usedEmojis.add(emoji);
+        availableIndex++;
+      } else {
+        // All emojis used, use hash-based assignment as fallback
+        let hash = 0;
+        for (let i = 0; i < player.playerId.length; i++) {
+          hash = ((hash << 5) - hash) + player.playerId.charCodeAt(i);
+          hash = hash & hash;
         }
+        const emoji = PLAYER_ANIMAL_EMOJIS[Math.abs(hash) % PLAYER_ANIMAL_EMOJIS.length];
+        emojiMap.set(player.playerId, emoji);
       }
     }
   }
@@ -126,10 +149,99 @@ export const getPlayerDisplayName = (name: string, playerId: string): string => 
   return formatPlayerName(name, emoji);
 };
 
+// ===== LocalStorage-based emoji persistence =====
+
+/**
+ * Get player emojis from localStorage for a specific game
+ * This ensures emojis remain consistent across tab switches, refreshes, etc.
+ */
+export const getPlayerEmojisFromStorage = (gameId: string): Map<string, string> => {
+  try {
+    const stored = localStorage.getItem(`game_${gameId}_emojis`);
+    if (stored) {
+      const parsed: Record<string, string> = JSON.parse(stored);
+      return new Map(Object.entries(parsed));
+    }
+  } catch {
+    console.warn('Failed to load emojis from localStorage');
+  }
+  return new Map();
+};
+
+/**
+ * Save player emojis to localStorage for a specific game
+ */
+export const savePlayerEmojisToStorage = (gameId: string, emojis: Map<string, string>): void => {
+  try {
+    const obj: Record<string, string> = {};
+    emojis.forEach((value, key) => {
+      obj[key] = value;
+    });
+    localStorage.setItem(`game_${gameId}_emojis`, JSON.stringify(obj));
+  } catch {
+    console.warn('Failed to save emojis to localStorage');
+  }
+};
+
+/**
+ * Get the last processed event index from localStorage
+ * This prevents reprocessing events when tab regains focus
+ */
+export const getLastProcessedEventIndex = (gameId: string): number => {
+  try {
+    const stored = localStorage.getItem(`game_${gameId}_lastEventIndex`);
+    if (stored) {
+      return parseInt(stored, 10);
+    }
+  } catch {
+    console.warn('Failed to load last event index from localStorage');
+  }
+  return -1;
+};
+
+/**
+ * Save the last processed event index to localStorage
+ */
+export const saveLastProcessedEventIndex = (gameId: string, index: number): void => {
+  try {
+    localStorage.setItem(`game_${gameId}_lastEventIndex`, String(index));
+  } catch {
+    console.warn('Failed to save last event index to localStorage');
+  }
+};
+
+/**
+ * Get the set of event timestamps that have had sounds played from localStorage
+ * This prevents sounds from being replayed when switching tabs
+ */
+export const getProcessedSoundEvents = (gameId: string): Set<string> => {
+  try {
+    const stored = localStorage.getItem(`game_${gameId}_soundEvents`);
+    if (stored) {
+      const parsed: string[] = JSON.parse(stored);
+      return new Set(parsed);
+    }
+  } catch {
+    console.warn('Failed to load sound events from localStorage');
+  }
+  return new Set<string>();
+};
+
+/**
+ * Save the set of event timestamps that have had sounds played to localStorage
+ */
+export const saveProcessedSoundEvents = (gameId: string, events: Set<string>): void => {
+  try {
+    localStorage.setItem(`game_${gameId}_soundEvents`, JSON.stringify(Array.from(events)));
+  } catch {
+    console.warn('Failed to save sound events to localStorage');
+  }
+};
+
 // gtag.js integration
 
 interface WindowWithGTag extends Window {
-  gtag: ((...args: any) => void) | undefined;
+  gtag: ((...args: unknown[]) => void) | undefined;
 }
 
 const getWindowWithGTag = () => {

@@ -1,7 +1,7 @@
 import { GameEvent, IGameStatePlayer, ITransactionEvent } from '@monopoly-money/game-state';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTransactionNotifications } from '../components/TransactionNotification';
-import { bankName } from '../constants';
+import { getLastProcessedEventIndex, getProcessedSoundEvents, PLAYER_ANIMAL_EMOJIS, saveLastProcessedEventIndex, saveProcessedSoundEvents } from '../utils';
 
 // GameEntity types
 type GameEntity = 'bank' | 'freeParking' | string; // string is playerId
@@ -10,31 +10,53 @@ interface UseTransactionDetectionProps {
   events: GameEvent[];
   players: IGameStatePlayer[];
   currentPlayerId: string;
+  gameId: string; // Required for localStorage persistence
 }
 
 export const useTransactionDetection = ({
   events,
   players,
-  currentPlayerId
+  currentPlayerId,
+  gameId,
 }: UseTransactionDetectionProps) => {
   const { addNotification, clearNotifications } = useTransactionNotifications();
-  const lastProcessedEventIndex = useRef<number>(-1);
-  const processedEventsRef = useRef<Set<string>>(new Set());
+  
+  // Load last processed index from localStorage to prevent reprocessing on tab focus
+  const lastProcessedEventIndex = useRef<number>(getLastProcessedEventIndex(gameId));
+  
+  // Track which events have already had sounds played (persist across tab switches)
+  const processedSoundEvents = useRef<Set<string>>(getProcessedSoundEvents(gameId));
 
-  const getPlayerInfo = useCallback((entity: GameEntity): { name: string; id?: string } | null => {
-    if (entity === 'bank') return { name: bankName };
-    if (entity === 'freeParking') return { name: '🚗 Parada Libre' };
+  // Helper function to determine if sound should be played for this event
+  const shouldPlaySound = useCallback((eventTime: string): boolean => {
+    if (!processedSoundEvents.current.has(eventTime)) {
+      // Mark this event as having had sound played
+      processedSoundEvents.current.add(eventTime);
+      saveProcessedSoundEvents(gameId, processedSoundEvents.current);
+      return true;
+    }
+    return false;
+  }, [gameId]);
+
+  const getPlayerInfo = useCallback((entity: GameEntity): { name: string; id?: string; emoji?: string } | null => {
+    if (entity === 'bank') return { name: 'Banco', id: 'bank', emoji: '🏦' };
+    if (entity === 'freeParking') return { name: 'Parada Libre', id: 'freeParking', emoji: '🚗' };
     
     const player = players.find(p => p.playerId === entity);
-    return player ? { name: player.name, id: player.playerId } : null;
+    if (player) {
+      // Use deterministic emoji based on playerId for consistency across devices
+      const emoji = PLAYER_ANIMAL_EMOJIS[Math.abs(entity.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0)) % PLAYER_ANIMAL_EMOJIS.length];
+      return { name: player.name, id: player.playerId, emoji };
+    }
+    return null;
   }, [players]);
 
   useEffect(() => {
     // Clear any existing notifications on mount
     clearNotifications();
-    
-    // Clear processed events on mount
-    processedEventsRef.current.clear();
     
     return () => {
       // Cleanup on unmount
@@ -50,16 +72,9 @@ export const useTransactionDetection = ({
     for (let i = startIndex; i < events.length; i++) {
       const event = events[i];
       
-      // Skip if this event has already been processed
-      if (processedEventsRef.current.has(event.time)) {
-        continue;
-      }
-      
-      // Mark as processed
-      processedEventsRef.current.add(event.time);
-      
       if (event.type === 'transaction') {
         const txEvent = event as ITransactionEvent;
+        const eventTime = event.time;
         
         // Check if current user sent money (only to players, not bank/freeParking)
         if (txEvent.from === currentPlayerId) {
@@ -69,7 +84,9 @@ export const useTransactionDetection = ({
               type: 'send',
               amount: txEvent.amount,
               playerName: toInfo.name,
-              playerId: toInfo.id
+              playerId: toInfo.id,
+              playerEmoji: toInfo.emoji,
+              shouldPlaySound: shouldPlaySound(eventTime)
             });
           }
         }
@@ -82,16 +99,19 @@ export const useTransactionDetection = ({
               type: 'receive',
               amount: txEvent.amount,
               playerName: fromInfo.name,
-              playerId: fromInfo.id
+              playerId: fromInfo.id,
+              playerEmoji: fromInfo.emoji,
+              shouldPlaySound: shouldPlaySound(eventTime)
             });
           }
         }
       }
     }
     
-    // Update last processed index
+    // Update last processed index and save to localStorage for persistence
     lastProcessedEventIndex.current = events.length - 1;
-  }, [events, currentPlayerId, addNotification, getPlayerInfo]);
+    saveLastProcessedEventIndex(gameId, lastProcessedEventIndex.current);
+  }, [events, currentPlayerId, gameId, addNotification, getPlayerInfo, shouldPlaySound]);
 };
 
 export default useTransactionDetection;

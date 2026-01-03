@@ -14,14 +14,13 @@ interface IPlayerCardProps {
 }
 
 const PlayerCard: React.FC<IPlayerCardProps> = ({ name, playerId, emoji, connected, balance, onClick }) => {
-  // Special icons for Parada Libre and Banco
-  const isFreeParking = name === freeParkingName;
-  const isBank = name === bankName;
+  // Special icons for Parada Libre and Banco - these names already include the emoji
+  const isSpecialEntity = name === freeParkingName || name === bankName;
   
-  const displayEmoji = isFreeParking ? "🚗" : isBank ? "🏦" : emoji;
+  const displayEmoji = isSpecialEntity ? (name === freeParkingName ? "🚗" : "🏦") : emoji;
   
   // Get the background color based on the emoji (for emoji-based players)
-  const cardStyle = (playerId && displayEmoji && !isFreeParking && !isBank)
+  const cardStyle = (playerId && displayEmoji && !isSpecialEntity)
     ? { backgroundColor: getPlayerEmojiColor(displayEmoji) }
     : {};
 
@@ -30,13 +29,15 @@ const PlayerCard: React.FC<IPlayerCardProps> = ({ name, playerId, emoji, connect
       {connected !== null && <ConnectedStateDot connected={connected} className="m-2" />}
       <Card.Body className="p-3" onClick={onClick}>
         <div className="player-name-with-emoji">
-          {playerId && displayEmoji ? (
+          {/* Only show emoji at start if there's a playerId OR if it's NOT a special entity */}
+          {(playerId || !isSpecialEntity) && displayEmoji ? (
             <>
               <span className="player-emoji" role="img" aria-label="animal">
                 {displayEmoji}
               </span>
               <span>{name}</span>
-              {!isFreeParking && !isBank && name.length <= 5 && (
+              {/* Never show emoji at end for special entities since name already includes emoji */}
+              {!isSpecialEntity && name.length <= 5 && (
                 <span className="player-emoji-end" role="img" aria-label="animal">
                   {displayEmoji}
                 </span>

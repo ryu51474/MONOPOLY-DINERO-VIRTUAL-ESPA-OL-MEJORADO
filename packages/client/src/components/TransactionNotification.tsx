@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { bankName, freeParkingName } from '../constants';
-import { getPlayerEmoji } from '../utils';
 import { useSounds } from './SoundProvider';
 import './TransactionNotification.scss';
 
@@ -10,8 +8,10 @@ export interface TransactionNotificationData {
   amount: number;
   playerName: string;
   playerId?: string;
+  playerEmoji?: string; // Pre-computed emoji for consistency
   timestamp: number;
   exiting?: boolean;
+  shouldPlaySound?: boolean; // Flag to control if sound should play for this notification
 }
 
 // Global queue for notifications (shared across components)
@@ -84,11 +84,11 @@ const TransactionNotification: React.FC = () => {
   const { playSound } = useSounds();
   const previousLengthRef = useRef<number>(0);
 
-  // Play sound when notification appears
+  // Play sound when notification appears (only if shouldPlaySound is true)
   useEffect(() => {
     if (notifications.length > previousLengthRef.current) {
       const latest = notifications[notifications.length - 1];
-      if (!latest.exiting) {
+      if (!latest.exiting && latest.shouldPlaySound !== false) {
         if (latest.type === 'send') {
           playSound('transaction');
         } else {
@@ -124,19 +124,11 @@ const TransactionNotification: React.FC = () => {
                 <div className="notification-text send-text">
                   <span className="notification-amount">-${notification.amount.toLocaleString()}</span>
                   <span className="notification-message">enviado a</span>
-                  {notification.playerName === freeParkingName ? (
-                    <span className="notification-player-emoji" role="img" aria-label="free-parking">
-                      🚗
+                  {notification.playerEmoji ? (
+                    <span className="notification-player-emoji" role="img" aria-label="player-emoji">
+                      {notification.playerEmoji}
                     </span>
-                  ) : notification.playerName === bankName ? (
-                    <span className="notification-player-emoji" role="img" aria-label="bank">
-                      🏦
-                    </span>
-                  ) : notification.playerId && (
-                    <span className="notification-player-emoji" role="img" aria-label="animal">
-                      {getPlayerEmoji(notification.playerId)}
-                    </span>
-                  )}
+                  ) : null}
                   <span className="notification-player">{notification.playerName}</span>
                 </div>
               </>
@@ -150,19 +142,11 @@ const TransactionNotification: React.FC = () => {
                 <div className="notification-text receive-text">
                   <span className="notification-amount">+${notification.amount.toLocaleString()}</span>
                   <span className="notification-message">de</span>
-                  {notification.playerName === freeParkingName ? (
-                    <span className="notification-player-emoji" role="img" aria-label="free-parking">
-                      🚗
+                  {notification.playerEmoji ? (
+                    <span className="notification-player-emoji" role="img" aria-label="player-emoji">
+                      {notification.playerEmoji}
                     </span>
-                  ) : notification.playerName === bankName ? (
-                    <span className="notification-player-emoji" role="img" aria-label="bank">
-                      🏦
-                    </span>
-                  ) : notification.playerId && (
-                    <span className="notification-player-emoji" role="img" aria-label="animal">
-                      {getPlayerEmoji(notification.playerId)}
-                    </span>
-                  )}
+                  ) : null}
                   <span className="notification-player">{notification.playerName}</span>
                 </div>
               </>

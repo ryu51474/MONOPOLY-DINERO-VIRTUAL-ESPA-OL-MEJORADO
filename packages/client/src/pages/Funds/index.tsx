@@ -1,10 +1,13 @@
 import { GameEntity, GameEvent, IGameStatePlayer } from "@monopoly-money/game-state";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "react-bootstrap";
 import { useModal } from "react-modal-hook";
 import { bankName, freeParkingName } from "../../constants";
 import useTransactionDetection from "../../hooks/useTransactionDetection";
-import { formatCurrency, getUniquePlayerEmojis } from "../../utils";
+import {
+  formatCurrency,
+  getPlayerEmoji
+} from "../../utils";
 import "./Funds.scss";
 import GameCode from "./GameCode";
 import PlayerCard from "./PlayerCard";
@@ -32,9 +35,6 @@ const Funds: React.FC<IFundsProps> = ({
   proposeTransaction,
   events
 }) => {
-  // Detectar transacciones y mostrar notificaciones
-  useTransactionDetection({ events, players, currentPlayerId: playerId });
-
   const [recipient, setRecipient] = useState<IGameStatePlayer | "freeParking" | "bank" | null>(
     null
   );
@@ -67,8 +67,12 @@ const Funds: React.FC<IFundsProps> = ({
   const me = players.find((p) => p.playerId === playerId);
   const isBanker = me?.banker ?? false;
 
-  // Get unique emojis for all players to avoid duplicates
-  const playerEmojis = useMemo(() => getUniquePlayerEmojis(players), [players]);
+  // Note: We now use the deterministic getPlayerEmoji function directly
+  // This ensures all devices see the same emoji for each playerId
+  // No localStorage state needed for emojis anymore
+
+  // Detectar transacciones y mostrar notificaciones
+  useTransactionDetection({ events, players, currentPlayerId: playerId, gameId });
 
   return (
     <div className="funds">
@@ -79,7 +83,7 @@ const Funds: React.FC<IFundsProps> = ({
           <Card.Body className="p-3">
             <div className="me-indicator">
               <span className="player-emoji" role="img" aria-label="animal">
-                {playerEmojis.get(me.playerId)}
+                {getPlayerEmoji(me.playerId)}
               </span>
               <span>{me.name}</span>
             </div>
@@ -94,7 +98,7 @@ const Funds: React.FC<IFundsProps> = ({
             key={player.playerId}
             name={player.name}
             playerId={player.playerId}
-            emoji={playerEmojis.get(player.playerId)}
+            emoji={getPlayerEmoji(player.playerId)}
             connected={player.connected}
             balance={player.balance}
             onClick={() => setRecipient(player)}
