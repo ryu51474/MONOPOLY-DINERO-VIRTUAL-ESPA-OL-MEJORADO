@@ -6,6 +6,38 @@ export const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
 export const sortPlayersByName = (players: IGameStatePlayer[]) =>
   players.slice().sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
 
+// Cute animal emojis for players (kept consistent with AvatarSelector)
+export const PLAYER_ANIMAL_EMOJIS = [
+  "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼",
+  "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔",
+  "🐧", "🐦", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗",
+  "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🦟"
+];
+
+// Get a deterministic animal emoji based on playerId
+export const getPlayerEmoji = (playerId: string): string => {
+  let hash = 0;
+  for (let i = 0; i < playerId.length; i++) {
+    hash = ((hash << 5) - hash) + playerId.charCodeAt(i);
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return PLAYER_ANIMAL_EMOJIS[Math.abs(hash) % PLAYER_ANIMAL_EMOJIS.length];
+};
+
+// Format player name with emoji - short names get emoji at start AND end
+export const formatPlayerName = (name: string, emoji: string): string => {
+  if (name.length <= 5) {
+    return `${emoji} ${name} ${emoji}`;
+  }
+  return `${emoji} ${name}`;
+};
+
+// Get player display name with emoji for use in UI
+export const getPlayerDisplayName = (name: string, playerId: string): string => {
+  const emoji = getPlayerEmoji(playerId);
+  return formatPlayerName(name, emoji);
+};
+
 // gtag.js integration
 
 interface WindowWithGTag extends Window {

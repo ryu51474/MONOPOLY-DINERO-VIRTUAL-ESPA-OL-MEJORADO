@@ -8,7 +8,7 @@ import Screenshot1Image from "../../img/screenshots/screenshot-1.png";
 import Screenshot2Image from "../../img/screenshots/screenshot-2.png";
 import Screenshot3Image from "../../img/screenshots/screenshot-3.png";
 import Screenshot4Image from "../../img/screenshots/screenshot-4.png";
-import { formatCurrency } from "../../utils";
+import { formatCurrency, getPlayerEmoji } from "../../utils";
 import "./Home.scss";
 
 interface IHomeProps {
@@ -69,12 +69,15 @@ const Home: React.FC<IHomeProps> = ({ onGameSetup }) => {
                             }
                             className="mr-1"
                           >
+                            <span className="badge-player-emoji" role="img" aria-label="animal">
+                              {getPlayerEmoji(player.playerId)}
+                            </span>
                             {player.name}: {formatCurrency(player.balance)}
                           </Badge>
                         ))}
                       {status !== null && status.useFreeParking && (
                         <Badge variant="warning">
-                          Estacionamiento Libre: {formatCurrency(status.freeParkingBalance)}
+                          Parada Libre: {formatCurrency(status.freeParkingBalance)}
                         </Badge>
                       )}
                     </div>

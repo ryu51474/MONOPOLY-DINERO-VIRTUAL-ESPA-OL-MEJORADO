@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { getPlayerEmoji } from '../utils';
 import { useSounds } from './SoundProvider';
 import './TransactionNotification.scss';
 
@@ -7,6 +8,7 @@ export interface TransactionNotificationData {
   type: 'send' | 'receive';
   amount: number;
   playerName: string;
+  playerId?: string;
   timestamp: number;
   exiting?: boolean;
 }
@@ -121,6 +123,11 @@ const TransactionNotification: React.FC = () => {
                 <div className="notification-text send-text">
                   <span className="notification-amount">-${notification.amount.toLocaleString()}</span>
                   <span className="notification-message">enviado a</span>
+                  {notification.playerId && (
+                    <span className="notification-player-emoji" role="img" aria-label="animal">
+                      {getPlayerEmoji(notification.playerId)}
+                    </span>
+                  )}
                   <span className="notification-player">{notification.playerName}</span>
                 </div>
               </>
@@ -134,6 +141,11 @@ const TransactionNotification: React.FC = () => {
                 <div className="notification-text receive-text">
                   <span className="notification-amount">+${notification.amount.toLocaleString()}</span>
                   <span className="notification-message">de</span>
+                  {notification.playerId && (
+                    <span className="notification-player-emoji" role="img" aria-label="animal">
+                      {getPlayerEmoji(notification.playerId)}
+                    </span>
+                  )}
                   <span className="notification-player">{notification.playerName}</span>
                 </div>
               </>

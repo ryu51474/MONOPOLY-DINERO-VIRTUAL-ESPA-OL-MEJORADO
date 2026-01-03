@@ -50,7 +50,7 @@ const useGameHandler = (): {
               </li>
             ))}
             {gameState.useFreeParking && (
-              <li>Estacionamiento Libre: {formatCurrency(gameState.freeParkingBalance)}</li>
+              <li>Parada Libre: {formatCurrency(gameState.freeParkingBalance)}</li>
             )}
           </ul>
           <small>(Proporcionado en caso de que necesites recrear el juego)</small>

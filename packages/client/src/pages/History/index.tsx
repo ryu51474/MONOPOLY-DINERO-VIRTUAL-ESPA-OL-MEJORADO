@@ -7,7 +7,7 @@ import {
 import { DateTime } from "luxon";
 import React from "react";
 import { bankName, freeParkingName } from "../../constants";
-import { formatCurrency } from "../../utils";
+import { formatCurrency, getPlayerEmoji } from "../../utils";
 import "./History.scss";
 
 interface IHistoryProps {
@@ -39,7 +39,7 @@ const History: React.FC<IHistoryProps> = ({ events }) => {
                   {eventDetail.time}
                 </small>
               </div>
-              <div className="detail">{eventDetail.detail}</div>
+              <div className="detail" dangerouslySetInnerHTML={{ __html: eventDetail.detail }} />
             </div>
           </div>
         )
@@ -69,11 +69,12 @@ const getEventDetails = (
   switch (event.type) {
     case "playerJoin": {
       const player = nextState.players.find((p) => p.playerId === event.playerId)!;
+      const emoji = getPlayerEmoji(player.playerId);
       return {
         ...defaults,
         title: "Unión de Jugador",
         actionedBy: null,
-        detail: `${player.name} se unió`,
+        detail: `<span class="event-player-emoji" role="img" aria-label="animal">${emoji}</span> ${player.name} se unió`,
         colour: "cyan"
       };
     }
@@ -81,73 +82,92 @@ const getEventDetails = (
     case "playerBankerStatusChange": {
       const player = nextState.players.find((p) => p.playerId === event.playerId)!;
       const actionedBy = previousState.players.find((p) => p.playerId === event.actionedBy)!;
+      const playerEmoji = getPlayerEmoji(player.playerId);
+      const actionedByEmoji = getPlayerEmoji(actionedBy.playerId);
       return {
         ...defaults,
         title: "Cambio de Estado de Banquero",
-        actionedBy: actionedBy.name,
-        detail: `${player.name} se convirtió en banquero`,
+        actionedBy: `<span class="event-player-emoji" role="img" aria-label="animal">${actionedByEmoji}</span> ${actionedBy.name}`,
+        detail: `<span class="event-player-emoji" role="img" aria-label="animal">${playerEmoji}</span> ${player.name} se convirtió en banquero`,
         colour: "yellow"
       };
     }
 
     case "transaction": {
-      const playerReceiving =
+      const playerReceivingInfo =
         event.to === "bank"
-          ? bankName
+          ? { name: bankName, emoji: "🏦", id: undefined }
           : event.to === "freeParking"
-          ? freeParkingName
-          : nextState.players.find((p) => p.playerId === event.to)!.name;
-      const playerGiving =
+          ? { name: freeParkingName, emoji: "🚗", id: undefined }
+          : (() => {
+              const p = nextState.players.find((p) => p.playerId === event.to)!;
+              return { name: p.name, emoji: getPlayerEmoji(p.playerId), id: p.playerId };
+            })();
+      const playerGivingInfo =
         event.from === "bank"
-          ? bankName
+          ? { name: bankName, emoji: "🏦", id: undefined }
           : event.from === "freeParking"
-          ? freeParkingName
-          : nextState.players.find((p) => p.playerId === event.from)!.name;
+          ? { name: freeParkingName, emoji: "🚗", id: undefined }
+          : (() => {
+              const p = nextState.players.find((p) => p.playerId === event.from)!;
+              return { name: p.name, emoji: getPlayerEmoji(p.playerId), id: p.playerId };
+            })();
       const actionedBy = previousState.players.find((p) => p.playerId === event.actionedBy)!;
+      const actionedByDisplay = actionedBy.playerId === event.from 
+        ? null 
+        : `<span class="event-player-emoji" role="img" aria-label="animal">${getPlayerEmoji(actionedBy.playerId)}</span> ${actionedBy.name}`;
       return {
         ...defaults,
         title: `Transacción`,
-        actionedBy: actionedBy.playerId === event.from ? null : actionedBy.name,
-        detail: `${playerGiving} → ${playerReceiving} (${formatCurrency(event.amount)})`,
+        actionedBy: actionedByDisplay,
+        detail: `${playerGivingInfo.emoji} ${playerGivingInfo.name} → ${playerReceivingInfo.emoji} ${playerReceivingInfo.name} (${formatCurrency(event.amount)})`,
         colour: "green"
       };
     }
 
     case "playerNameChange": {
-      const playerNameBeforeRename = previousState.players.find(
-        (p) => p.playerId === event.playerId
-      )!.name;
+      const player = previousState.players.find((p) => p.playerId === event.playerId)!;
+      const playerEmoji = getPlayerEmoji(player.playerId);
+      const playerNameBeforeRename = player.name;
       const playerNameAfterRename = nextState.players.find(
         (p) => p.playerId === event.playerId
       )!.name;
       const actionedBy = previousState.players.find((p) => p.playerId === event.actionedBy)!;
+      const actionedByDisplay = actionedBy.playerId === event.playerId 
+        ? null 
+        : `<span class="event-player-emoji" role="img" aria-label="animal">${getPlayerEmoji(actionedBy.playerId)}</span> ${actionedBy.name}`;
       return {
         ...defaults,
         title: "Cambio de Nombre",
-        actionedBy: actionedBy.playerId === event.playerId ? null : actionedBy.name,
-        detail: `${playerNameBeforeRename} fue renombrado a ${playerNameAfterRename}`,
+        actionedBy: actionedByDisplay,
+        detail: `${playerEmoji} ${playerNameBeforeRename} fue renombrado a ${playerEmoji} ${playerNameAfterRename}`,
         colour: "orange"
       };
     }
 
     case "playerDelete": {
-      const playerName = previousState.players.find((p) => p.playerId === event.playerId)!.name;
+      const player = previousState.players.find((p) => p.playerId === event.playerId)!;
+      const playerEmoji = getPlayerEmoji(player.playerId);
       const actionedBy = previousState.players.find((p) => p.playerId === event.actionedBy)!;
+      const actionedByDisplay = actionedBy.playerId === event.playerId 
+        ? null 
+        : `<span class="event-player-emoji" role="img" aria-label="animal">${getPlayerEmoji(actionedBy.playerId)}</span> ${actionedBy.name}`;
       return {
         ...defaults,
         title: "Eliminación de Jugador",
-        actionedBy: actionedBy.playerId === event.playerId ? null : actionedBy.name,
-        detail: `${playerName} fue eliminado del juego`,
+        actionedBy: actionedByDisplay,
+        detail: `${playerEmoji} ${player.name} fue eliminado del juego`,
         colour: "red"
       };
     }
 
     case "gameOpenStateChange": {
       const actionedBy = previousState.players.find((p) => p.playerId === event.actionedBy)!;
+      const actionedByEmoji = getPlayerEmoji(actionedBy.playerId);
       return {
         ...defaults,
         title: "Cambio de Estado del Juego",
-        actionedBy: actionedBy.name,
+        actionedBy: `<span class="event-player-emoji" role="img" aria-label="animal">${actionedByEmoji}</span> ${actionedBy.name}`,
         detail: `El juego ahora está ${event.open ? "abierto" : "cerrado"} a nuevos jugadores`,
         colour: "blue"
       };
@@ -155,11 +175,12 @@ const getEventDetails = (
 
     case "useFreeParkingChange": {
       const actionedBy = previousState.players.find((p) => p.playerId === event.actionedBy)!;
+      const actionedByEmoji = getPlayerEmoji(actionedBy.playerId);
       return {
         ...defaults,
-        title: "Cambio de Estado de Estacionamiento Libre",
-        actionedBy: actionedBy.name,
-        detail: `La regla de casa de Estacionamiento Libre ahora está ${
+        title: "Cambio de Estado de Parada Libre",
+        actionedBy: `<span class="event-player-emoji" role="img" aria-label="animal">${actionedByEmoji}</span> ${actionedBy.name}`,
+        detail: `La regla de casa de Parada Libre ahora está ${
           event.useFreeParking ? "activada" : "desactivada"
         }`,
         colour: "blue"
